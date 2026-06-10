@@ -382,11 +382,28 @@ window.navTo=(v,el)=>{
 };
 
 function checkNotifBanner(){
-  if(localStorage.getItem("misk-nb-done"))return;
   if(!("Notification"in window))return;
+  if(Notification.permission==="granted"){
+    // Already granted — silently re-save token to Firestore in case it's missing
+    autoSaveToken();
+    return;
+  }
+  if(localStorage.getItem("misk-nb-done"))return;
   if(Notification.permission==="default"){
     document.getElementById("notif-banner").classList.add("show");
   }
+}
+
+async function autoSaveToken(){
+  if(!fcm)return;
+  try{
+    const t=await getToken(fcm,{vapidKey:VAPID});
+    if(t){
+      await storeToken(t,sc);
+      localStorage.setItem("misk-tok",t);
+      localStorage.setItem("misk-tsc",sc);
+    }
+  }catch(e){console.warn("Auto token save:",e);}
 }
 
 window.reqNotif=async()=>{
