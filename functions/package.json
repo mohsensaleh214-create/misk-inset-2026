@@ -2,7 +2,6 @@
   "name": "misk-inset-functions",
   "version": "1.0.0",
   "dependencies": {
-    "google-auth-library": "^9.0.0",
-    "@netlify/blobs": "^8.0.0"
+    "google-auth-library": "^9.0.0"
   }
 }
