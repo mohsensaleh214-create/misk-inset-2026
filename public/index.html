@@ -430,16 +430,60 @@ window.closeAdm=()=>document.getElementById("adm").classList.remove("open");
 window.closeAll=()=>document.getElementById("overlay").classList.remove("open");
 window.setMsg=m=>document.getElementById("adm-msg").value=m;
 
-window.sendNotif=()=>{
+async function getTokensForSchool(school){
+  try{
+    const url="/.netlify/functions/store-token?school="+(school||"all");
+    const resp=await fetch(url);
+    const data=await resp.json();
+    return data.tokens||[];
+  }catch(e){console.error("Token fetch:",e);return[];}
+}
+
+async function storeToken(token,school){
+  try{
+    await fetch("/.netlify/functions/store-token",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({token,school})
+    });
+  }catch(e){console.error("Token store:",e);}
+}
+
+window.sendNotif=async()=>{
   const s=document.getElementById("adm-school").value;
   const m=document.getElementById("adm-msg").value.trim();
   const r=document.getElementById("res");
+  const btn=document.querySelector(".adm-body .btn-p");
   if(!m){r.className="res err";r.style.display="block";r.textContent="Please write a message first.";return;}
-  console.log("NOTIFY",{school:s,message:m,timestamp:new Date().toISOString()});
-  r.className="res ok";r.style.display="block";
-  r.textContent="Sent to "+(s==="all"?"all schools":s.toUpperCase())+' — "'+m+'"';
-  document.getElementById("adm-msg").value="";
-  setTimeout(()=>r.style.display="none",4000);
+  btn.textContent="Sending...";btn.disabled=true;
+  try{
+    const tokens=await getTokensForSchool(s);
+    if(tokens.length===0){
+      r.className="res err";r.style.display="block";
+      r.textContent="No devices registered yet for "+(s==="all"?"all schools":s)+".";
+      btn.textContent="Send Notification";btn.disabled=false;
+      return;
+    }
+    const resp=await fetch("/.netlify/functions/send-notification",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({adminKey:"misk-admin-2026",school:s,message:m,tokens})
+    });
+    const data=await resp.json();
+    if(data.success){
+      r.className="res ok";r.style.display="block";
+      r.textContent="Sent to "+data.sent+" device"+(data.sent!==1?"s":"")+(data.failed>0?" ("+data.failed+" failed)":"");
+      document.getElementById("adm-msg").value="";
+      setTimeout(()=>r.style.display="none",4000);
+    } else {
+      r.className="res err";r.style.display="block";
+      r.textContent="Error: "+(data.error||"Unknown error");
+    }
+  }catch(e){
+    r.className="res err";r.style.display="block";
+    r.textContent="Failed to send. Check connection.";
+  }
+  btn.textContent="Send Notification";btn.disabled=false;
 };
 
 function toast(title,body){
