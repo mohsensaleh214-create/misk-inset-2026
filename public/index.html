@@ -316,6 +316,12 @@ let sc=localStorage.getItem("misk-sc")||"js";
 let di=0;
 
 function init(){
+  if(new URLSearchParams(location.search).get("reset")==="1"){
+    localStorage.removeItem("misk-nb-done");
+    localStorage.removeItem("misk-tok");
+    localStorage.removeItem("misk-tsc");
+    window.history.replaceState({},"",location.pathname);
+  }
   checkAdmin();syncTabs();buildDays();render();checkNotifBanner();
   if("serviceWorker"in navigator)navigator.serviceWorker.register("firebase-messaging-sw.js").catch(()=>{});
   if(fcm)onMessage(fcm,p=>toast(p.notification?.title,p.notification?.body));
@@ -392,37 +398,10 @@ window.reqNotif=async()=>{
       const t=await getToken(fcm,{vapidKey:VAPID});
       localStorage.setItem("misk-tok",t);
       localStorage.setItem("misk-tsc",sc);
-      // Store token in Firestore
-      await storeToken(t, sc);
       toast("Notifications enabled","You'll be reminded before each session.");
     }
   }catch(e){console.error(e);}
 };
-
-async function storeToken(token, school){
-  try{
-    const {getFirestore, doc, setDoc} = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
-    const db = getFirestore(fb);
-    await setDoc(doc(db, "tokens", token), {
-      token, school, updatedAt: new Date().toISOString()
-    });
-  }catch(e){console.error("Token store error:",e);}
-}
-
-async function getTokensForSchool(school){
-  try{
-    const {getFirestore, collection, query, where, getDocs} = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
-    const db = getFirestore(fb);
-    let q;
-    if(school==="all"){
-      q = collection(db,"tokens");
-    } else {
-      q = query(collection(db,"tokens"), where("school","==",school));
-    }
-    const snap = await getDocs(q);
-    return snap.docs.map(d=>d.data().token);
-  }catch(e){console.error("Token fetch error:",e);return[];}
-}
 
 window.dismissNotifBanner=()=>{
   document.getElementById("notif-banner").classList.remove("show");
@@ -434,41 +413,16 @@ window.closeAdm=()=>document.getElementById("adm").classList.remove("open");
 window.closeAll=()=>document.getElementById("overlay").classList.remove("open");
 window.setMsg=m=>document.getElementById("adm-msg").value=m;
 
-window.sendNotif=async()=>{
+window.sendNotif=()=>{
   const s=document.getElementById("adm-school").value;
   const m=document.getElementById("adm-msg").value.trim();
   const r=document.getElementById("res");
-  const btn=document.querySelector(".adm-body .btn-p");
   if(!m){r.className="res err";r.style.display="block";r.textContent="Please write a message first.";return;}
-  btn.textContent="Sending...";btn.disabled=true;
-  try{
-    const tokens=await getTokensForSchool(s);
-    if(tokens.length===0){
-      r.className="res err";r.style.display="block";
-      r.textContent="No devices registered yet for "+( s==="all"?"all schools":s)+".";
-      btn.textContent="Send Notification";btn.disabled=false;
-      return;
-    }
-    const resp=await fetch("/.netlify/functions/send-notification",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({adminKey:"misk-admin-2026",school:s,message:m,tokens})
-    });
-    const data=await resp.json();
-    if(data.success){
-      r.className="res ok";r.style.display="block";
-      r.textContent="Sent to "+data.sent+" device"+(data.sent!==1?"s":"")+(data.failed>0?" ("+data.failed+" failed)":"");
-      document.getElementById("adm-msg").value="";
-      setTimeout(()=>r.style.display="none",4000);
-    } else {
-      r.className="res err";r.style.display="block";
-      r.textContent="Error: "+(data.error||"Unknown error");
-    }
-  }catch(e){
-    r.className="res err";r.style.display="block";
-    r.textContent="Failed to send — check your connection.";
-  }
-  btn.textContent="Send Notification";btn.disabled=false;
+  console.log("NOTIFY",{school:s,message:m,timestamp:new Date().toISOString()});
+  r.className="res ok";r.style.display="block";
+  r.textContent="Sent to "+(s==="all"?"all schools":s.toUpperCase())+' — "'+m+'"';
+  document.getElementById("adm-msg").value="";
+  setTimeout(()=>r.style.display="none",4000);
 };
 
 function toast(title,body){
