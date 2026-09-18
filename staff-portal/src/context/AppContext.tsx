@@ -111,6 +111,9 @@ type Action_ =
   | { type: 'ACK_PATTERN_FLAG'; id: string }
   | { type: 'DISMISS_PATTERN_FLAG'; id: string; reason: string }
   | { type: 'AUTHORISE_CONTACT_EXCEPTION'; recordId: string; actorId: string }
+  | { type: 'UPDATE_SUPPORT_PLAN_GOAL'; recordId: string; goalIndex: number; status: 'on track' | 'needs attention' | 'met'; actorId: string }
+  | { type: 'CLOSE_SUPPORT_PLAN'; recordId: string; actorId: string }
+  | { type: 'UPDATE_REFERRAL_STATUS'; recordId: string; status: 'referred' | 'in progress' | 'completed' | 'declined'; actorId: string }
   | { type: 'LOG_AUDIT'; event: Omit<AuditEvent, 'id' | 'at'> };
 
 function nextId(state: AppState, prefix: string): [string, number] {
@@ -373,6 +376,40 @@ function reducer(state: AppState, action: Action_): AppState {
           r.id === action.recordId
             ? { ...r, authorisedById: action.actorId, updatedAt: at, updatedBy: action.actorId }
             : r,
+        ),
+      };
+    }
+    case 'UPDATE_SUPPORT_PLAN_GOAL': {
+      const at = nowIso(state);
+      return {
+        ...state,
+        wellbeingRecords: state.wellbeingRecords.map((r) =>
+          r.id === action.recordId && r.goals
+            ? {
+                ...r,
+                goals: r.goals.map((g, i) => (i === action.goalIndex ? { ...g, status: action.status } : g)),
+                updatedAt: at,
+                updatedBy: action.actorId,
+              }
+            : r,
+        ),
+      };
+    }
+    case 'CLOSE_SUPPORT_PLAN': {
+      const at = nowIso(state);
+      return {
+        ...state,
+        wellbeingRecords: state.wellbeingRecords.map((r) =>
+          r.id === action.recordId ? { ...r, planStatus: 'closed', updatedAt: at, updatedBy: action.actorId } : r,
+        ),
+      };
+    }
+    case 'UPDATE_REFERRAL_STATUS': {
+      const at = nowIso(state);
+      return {
+        ...state,
+        wellbeingRecords: state.wellbeingRecords.map((r) =>
+          r.id === action.recordId ? { ...r, referralStatus: action.status, updatedAt: at, updatedBy: action.actorId } : r,
         ),
       };
     }

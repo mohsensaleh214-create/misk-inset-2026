@@ -13,13 +13,16 @@ import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
 import { SelectField, TextAreaField } from '@/components/ui/FormField';
 import { useToast } from '@/components/ui/Toast';
+import { LockedPortal } from '@/components/LockedPortal';
 import { ShieldCheck } from 'lucide-react';
 
 const URGENCY_CLASS = { ok: 'text-info', caution: 'text-caution', urgent: 'text-urgent' } as const;
 
 export function TriageQueue() {
-  const { state, now } = useApp();
+  const { state, now, permissions } = useApp();
   const [openCase, setOpenCase] = useState<Case | null>(null);
+
+  if (!permissions.triage) return <LockedPortal portal="Safeguarding" />;
 
   const queue = state.cases
     .filter((c) => c.status === 'untriaged')

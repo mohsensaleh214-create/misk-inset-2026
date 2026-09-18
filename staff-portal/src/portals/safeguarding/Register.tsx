@@ -13,6 +13,7 @@ import { LevelBadge, StatusPill } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
+import { LockedPortal } from '@/components/LockedPortal';
 import { BookOpen, Bookmark } from 'lucide-react';
 
 export function Register() {
@@ -85,6 +86,8 @@ export function Register() {
     owner && { key: 'owner', label: staffName(state.staff.find((s) => s.id === owner)), onRemove: () => setOwner('') },
     category && { key: 'category', label: category, onRemove: () => setCategory('') },
   ].filter(Boolean) as { key: string; label: string; onRemove: () => void }[];
+
+  if (permissions.safeguarding === 'none') return <LockedPortal portal="Safeguarding" />;
 
   return (
     <>
