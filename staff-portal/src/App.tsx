@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AppShell } from '@/components/AppShell';
 import { Placeholder } from '@/pages/Placeholder';
@@ -17,8 +18,9 @@ import { Stalled } from '@/portals/safeguarding/Stalled';
 import { CaseView } from '@/portals/safeguarding/CaseView';
 import { ActivitiesList } from '@/pages/ActivitiesList';
 import { TripView } from '@/pages/TripView';
-import { Reporting } from '@/pages/Reporting';
 import { Settings } from '@/pages/Settings';
+
+const Reporting = lazy(() => import('@/pages/Reporting').then((m) => ({ default: m.Reporting })));
 
 export default function App() {
   return (
@@ -46,7 +48,14 @@ export default function App() {
         <Route path="/activities" element={<ActivitiesList />} />
         <Route path="/activities/:activityId" element={<TripView />} />
 
-        <Route path="/reporting" element={<Reporting />} />
+        <Route
+          path="/reporting"
+          element={
+            <Suspense fallback={<p className="text-[15px] text-ink-muted">Loading reporting…</p>}>
+              <Reporting />
+            </Suspense>
+          }
+        />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Placeholder title="Not found" />} />
       </Routes>
