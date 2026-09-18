@@ -4,9 +4,9 @@ type BannerTone = 'info' | 'caution' | 'urgent' | 'steady' | 'locked';
 
 const META: Record<BannerTone, { bg: string; fg: string; Icon: typeof Info }> = {
   info: { bg: 'bg-info-tint', fg: 'text-info', Icon: Info },
-  caution: { bg: 'bg-caution-tint', fg: 'text-caution', Icon: AlertTriangle },
+  caution: { bg: 'bg-caution-tint', fg: 'text-caution-deep', Icon: AlertTriangle },
   urgent: { bg: 'bg-urgent-tint', fg: 'text-urgent', Icon: AlertTriangle },
-  steady: { bg: 'bg-steady-tint', fg: 'text-steady', Icon: CheckCircle2 },
+  steady: { bg: 'bg-steady-tint', fg: 'text-steady-deep', Icon: CheckCircle2 },
   locked: { bg: 'bg-surface-sunken', fg: 'text-ink-muted', Icon: Lock },
 };
 

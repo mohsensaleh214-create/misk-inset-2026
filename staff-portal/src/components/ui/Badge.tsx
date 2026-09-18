@@ -3,8 +3,8 @@ import type { LevelOfConcern, CaseStatus } from '@/lib/types';
 
 const LEVEL_META: Record<LevelOfConcern, { label: string; bg: string; fg: string; Icon: typeof AlertTriangle }> = {
   immediate: { label: 'Immediate', bg: 'bg-urgent-tint', fg: 'text-urgent', Icon: AlertTriangle },
-  elevated: { label: 'Elevated', bg: 'bg-caution-tint', fg: 'text-caution', Icon: Clock },
-  monitored: { label: 'Monitored', bg: 'bg-steady-tint', fg: 'text-steady', Icon: CheckCircle2 },
+  elevated: { label: 'Elevated', bg: 'bg-caution-tint', fg: 'text-caution-deep', Icon: Clock },
+  monitored: { label: 'Monitored', bg: 'bg-steady-tint', fg: 'text-steady-deep', Icon: CheckCircle2 },
 };
 
 export function LevelBadge({ level, size = 'md' }: { level: LevelOfConcern; size?: 'sm' | 'md' }) {
@@ -22,8 +22,8 @@ export function LevelBadge({ level, size = 'md' }: { level: LevelOfConcern; size
 
 const STATUS_META: Record<CaseStatus, { label: string; bg: string; fg: string }> = {
   untriaged: { label: 'Untriaged', bg: 'bg-info-tint', fg: 'text-info' },
-  open: { label: 'Open', bg: 'bg-caution-tint', fg: 'text-caution' },
-  closed: { label: 'Closed', bg: 'bg-steady-tint', fg: 'text-steady' },
+  open: { label: 'Open', bg: 'bg-caution-tint', fg: 'text-caution-deep' },
+  closed: { label: 'Closed', bg: 'bg-steady-tint', fg: 'text-steady-deep' },
 };
 
 export function StatusPill({ status }: { status: CaseStatus }) {

@@ -11,7 +11,7 @@ export function PortalHeader({ portal, title, description }: { portal: ThemeKey;
   const t = tone(portal);
   return (
     <div className="rounded-[12px] px-6 py-5" style={{ backgroundColor: t.tint }}>
-      <p className="text-[13px] font-medium uppercase tracking-wide" style={{ color: t.accent }}>
+      <p className="text-[13px] font-medium uppercase tracking-wide" style={{ color: t.accentDeep }}>
         {portal !== 'neutral' ? portal.charAt(0).toUpperCase() + portal.slice(1) : ''}
       </p>
       <h1 className="mt-1 text-[28px] font-semibold leading-[1.2] text-ink">{title}</h1>

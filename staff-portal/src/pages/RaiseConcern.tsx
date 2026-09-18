@@ -137,7 +137,7 @@ export function RaiseConcern() {
                 state_ === 'current'
                   ? 'bg-ink text-white'
                   : state_ === 'done'
-                    ? 'bg-steady-tint text-steady'
+                    ? 'bg-steady-tint text-steady-deep'
                     : 'bg-surface-sunken text-ink-muted'
               }`}
             >
