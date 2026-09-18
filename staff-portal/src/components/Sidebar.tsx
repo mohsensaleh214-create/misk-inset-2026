@@ -5,6 +5,7 @@ import { canEnterPortal } from '@/lib/permissions';
 import { portalSubNav } from '@/lib/nav';
 import { PersonAvatar } from '@/components/ui/PersonAvatar';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
+import { DemoControls } from '@/components/DemoControls';
 import { staffName } from '@/lib/selectors';
 import { tone } from '@/lib/portal-theme';
 
@@ -90,8 +91,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <Settings size={16} aria-hidden />
           Settings
         </NavLink>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col gap-3 rounded-[8px] border border-line-strong border-dashed p-2.5">
           <RoleSwitcher />
+          <DemoControls compact />
         </div>
       </div>
     </div>

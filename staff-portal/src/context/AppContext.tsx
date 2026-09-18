@@ -494,6 +494,7 @@ function buildNotifications(state: AppState, currentUser: Staff, now: Date): Not
           link: `/safeguarding/cases/${c.id}`,
           createdAt: a.dueAt,
           read: false,
+          category: overdue ? 'overdue' : 'due-today',
         });
       }
       // Escalation: overdue action on an elevated/immediate case reaches the senior DSL
@@ -506,6 +507,7 @@ function buildNotifications(state: AppState, currentUser: Staff, now: Date): Not
           link: `/safeguarding/cases/${c.id}`,
           createdAt: a.dueAt,
           read: false,
+          category: 'overdue',
         });
       }
     }
@@ -513,15 +515,18 @@ function buildNotifications(state: AppState, currentUser: Staff, now: Date): Not
     // Review due today or overdue, for the case owner
     if (c.ownerId === currentUser.id && c.nextReviewDue) {
       const due = new Date(c.nextReviewDue);
-      if (due.getTime() <= now.getTime()) {
+      const overdue = due.getTime() < now.getTime() && due.toDateString() !== now.toDateString();
+      const dueToday = due.toDateString() === now.toDateString();
+      if (overdue || dueToday) {
         out.push({
           id: `notif-review-${c.id}`,
           recipientId: currentUser.id,
           studentId: student.id,
-          message: `Review due: ${studentName}'s case`,
+          message: `${overdue ? 'Review overdue' : 'Review due today'}: ${studentName}'s case`,
           link: `/safeguarding/cases/${c.id}`,
           createdAt: c.nextReviewDue,
           read: false,
+          category: overdue ? 'overdue' : 'due-today',
         });
       }
     }
@@ -539,6 +544,7 @@ function buildNotifications(state: AppState, currentUser: Staff, now: Date): Not
           link: `/safeguarding/cases/${c.id}`,
           createdAt: c.triagedAt,
           read: false,
+          category: 'new',
         });
       }
     }
@@ -556,6 +562,7 @@ function buildNotifications(state: AppState, currentUser: Staff, now: Date): Not
           link: `/safeguarding/cases/${c.id}`,
           createdAt: c.triagedAt,
           read: false,
+          category: 'new',
         });
       }
     }

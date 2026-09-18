@@ -215,4 +215,5 @@ export interface Notification {
   link: string;
   createdAt: string;
   read: boolean;
+  category: 'overdue' | 'due-today' | 'new';
 }
