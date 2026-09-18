@@ -92,6 +92,7 @@ type Action_ =
   | { type: 'TRIAGE_CASE'; caseId: string; level: LevelOfConcern; ownerId: string; actorId: string; note?: string }
   | { type: 'SET_LEVEL'; caseId: string; level: LevelOfConcern; actorId: string; note: string }
   | { type: 'ADD_ENTRY'; caseId: string; entryType: Entry['type']; body: string; actorId: string }
+  | { type: 'ADD_REVIEW'; caseId: string; body: string; nextReviewDue?: string; actorId: string }
   | { type: 'ADD_ACTION'; caseId: string; description: string; ownerId: string; dueAt: string; actorId: string }
   | { type: 'COMPLETE_ACTION'; actionId: string; outcome: string; actorId: string }
   | { type: 'ADD_CONTACT_RECORD'; record: Omit<ContactRecord, 'id' | 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>; actorId: string }
@@ -109,6 +110,7 @@ type Action_ =
     }
   | { type: 'ACK_PATTERN_FLAG'; id: string }
   | { type: 'DISMISS_PATTERN_FLAG'; id: string; reason: string }
+  | { type: 'AUTHORISE_CONTACT_EXCEPTION'; recordId: string; actorId: string }
   | { type: 'LOG_AUDIT'; event: Omit<AuditEvent, 'id' | 'at'> };
 
 function nextId(state: AppState, prefix: string): [string, number] {
@@ -241,6 +243,28 @@ function reducer(state: AppState, action: Action_): AppState {
       };
       return { ...state, entries: [...state.entries, entry], seq: n };
     }
+    case 'ADD_REVIEW': {
+      const at = nowIso(state);
+      const [entryId, n] = nextId(state, 'entry');
+      const entry: Entry = {
+        id: entryId,
+        caseId: action.caseId,
+        type: 'review',
+        body: action.body,
+        authorId: action.actorId,
+        ...withMeta(action.actorId, at),
+      };
+      return {
+        ...state,
+        entries: [...state.entries, entry],
+        cases: state.cases.map((c) =>
+          c.id === action.caseId && action.nextReviewDue
+            ? { ...c, nextReviewDue: action.nextReviewDue, updatedAt: at, updatedBy: action.actorId }
+            : c,
+        ),
+        seq: n,
+      };
+    }
     case 'ADD_ACTION': {
       const at = nowIso(state);
       const [actionId, n] = nextId(state, 'action');
@@ -341,6 +365,17 @@ function reducer(state: AppState, action: Action_): AppState {
           p.id === action.id ? { ...p, status: 'dismissed', dismissReason: action.reason } : p,
         ),
       };
+    case 'AUTHORISE_CONTACT_EXCEPTION': {
+      const at = nowIso(state);
+      return {
+        ...state,
+        contactRecords: state.contactRecords.map((r) =>
+          r.id === action.recordId
+            ? { ...r, authorisedById: action.actorId, updatedAt: at, updatedBy: action.actorId }
+            : r,
+        ),
+      };
+    }
     case 'LOG_AUDIT': {
       const at = nowIso(state);
       const [eventId, n] = nextId(state, 'audit');
